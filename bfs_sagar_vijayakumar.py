@@ -37,9 +37,9 @@ def move_down(x, y):
 def move_down_right(x, y):
     return x + 1, y + 1
 
-def inside_E(x, y, x0=10+20, y0=35, width=10, height=20, mid_width=7, thickness=3):
-    "Checks if coordinates is in letter using half planes"""
 
+"----------------------All the functions between here to the end of this marker defines the space that constitute the space on and inside the letters and numbers E,N,P,M,6,6,1------------"
+def inside_E(x, y, x0=10+20, y0=35, width=10, height=20, mid_width=7, thickness=3):
     # Define the main leg
     if x0 <= x <= x0 + thickness and y0 - height <= y <= y0:
         return True
@@ -59,7 +59,6 @@ def inside_E(x, y, x0=10+20, y0=35, width=10, height=20, mid_width=7, thickness=
     return False
 
 def inside_N(x, y, x0=25+20, y0=35, width=10, height=20, thickness=3):
-    """Checks if coordinates is in letter using half planes"""
 
     # Left vertical bar
     if x0 <= x <= x0 + thickness and y0 - height <= y <= y0:
@@ -71,9 +70,9 @@ def inside_N(x, y, x0=25+20, y0=35, width=10, height=20, thickness=3):
 
     # Diagonal connecting top-left to bottom-right
     slope = (2/3)*height / (width - 2 * thickness)
-    y_expected = (slope * (x - (x0 + thickness))) + (y0 - height)
+    y_s = (slope * (x - (x0 + thickness))) + (y0 - height)
 
-    if x0 + thickness <= x <= x0 + width - thickness and y_expected <= y <= y_expected + height/3:
+    if x0 + thickness <= x <= x0 + width - thickness and y_s <= y <= y_s + height/3:
         return True
 
     return False
@@ -88,11 +87,11 @@ def inside_P(x, y, x0=40+20, y0=35, width=10, height=20, thickness=3):
           return True
 
     # Approximating the curved section using a bounding box (semi-circle)
-    curve_x_center = x0 + thickness
-    curve_y_center = y0 - (3 * height / 4)  # Approximate center of the curve
-    curve_radius = height / 4
+    curve_x = x0 + thickness
+    curve_y = y0 - (3 * height / 4)  # Approximate center of the curve
+    curve_r = height / 4
     # Circular region approximation for "P"
-    if ((x - curve_x_center) ** 2 + ((y - curve_y_center) ** 2) <= curve_radius ** 2 and y < y0 - height // 2 and x> x0 + thickness):
+    if ((x - curve_x) ** 2 + ((y - curve_y) ** 2) <= curve_r ** 2 and y < y0 - height // 2 and x> x0 + thickness):
         return True
 
     return False
@@ -109,16 +108,16 @@ def inside_M(x, y, x0=50+20, y0=35, width=15, height=20, thickness=3):
 
     # Left diagonal (bottom-left to middle-bottom)
     slope_left = (height / 2) / (width / 2 - thickness)
-    y_expected_left = slope_left * (x - x0 - thickness) + (y0 - height)
+    y_left = slope_left * (x - x0 - thickness) + (y0 - height)
 
-    if x0 + thickness <= x <= x0 + width / 2 and y_expected_left  <= y <= y_expected_left + 10:
+    if x0 + thickness <= x <= x0 + width / 2 and y_left  <= y <= y_left + 10:
         return True
 
     # Right diagonal (middle-bottom to bottom-right)
     slope_right = (-height / 2) / (width / 2 - thickness)
-    y_expected_right = slope_right * (x - (x0 + width / 2)) + (y0 - height / 2)
+    y_right = slope_right * (x - (x0 + width / 2)) + (y0 - height / 2)
 
-    if x0 + width / 2 <= x <= x0 + width - thickness and y_expected_right <= y <= y_expected_right + 10:
+    if x0 + width / 2 <= x <= x0 + width - thickness and y_right <= y <= y_right + 10:
         return True
 
     return False
@@ -187,7 +186,10 @@ def inside_6_first(x, y, x0=(145//2)+20, y0=35, large=20/2, med=13//2, small_rad
         return True
 
     return False
+"-------------------------------------x----------------------------"
 
+
+#Function that generates obstacle and clearance spaces"
 
 def generate_obstacles(grid_width, grid_height, clearance):
     """
@@ -244,8 +246,8 @@ clearance_region = np.where((clearance_mask == 255) & (obstacle_mask == 0))
 workspace[clearance_region] = (255, 0, 0)
 
 # Create binary masks for obstacles and clearance
-obstacle_mask_bgr = np.all(workspace == [0, 0, 0], axis=-1)   # Black obstacles
-clearance_mask_bgr = np.all(workspace == [255, 0, 0], axis=-1) # Blue clearance
+obstacle_mask_bgr = np.all(workspace == [0, 0, 0], axis=-1)   # Black obstacles needed for bfs
+clearance_mask_bgr = np.all(workspace == [255, 0, 0], axis=-1) # Blue clearance needed for bfs 
 
 # BFS Pathfinding Algorithm
 def bfs(start, goal):
@@ -288,25 +290,29 @@ def bfs(start, goal):
     return None  
 
 # Define start and goal points
-start, goal = (5, 5), (160, 40)
+start_x = int(input("Enter start node x coordinate : "))
+start_y = int(input("Enter start node y coordinate : "))
+goal_x = int(input("Enter goal node x coordinate : "))
+goal_y = int(input("Enter goal node y coordinate : "))
+
 
 # Check if start and goal are inside obstacles or clearance area
-if np.array_equal(workspace[start[1], start[0]], [0, 0, 0]) or np.array_equal(workspace[start[1], start[0]], [255, 0, 0]):
+if np.array_equal(workspace[canvas_height-start_y, start_x], [0, 0, 0]) or np.array_equal(workspace[canvas_height-start_y, start_x], [255, 0, 0]):# y value has been adjusted to be set w.r.t bottom left corner as origin
     print("Start is inside an obstacle or clearance area!")
-elif np.array_equal(workspace[goal[1], goal[0]], [0, 0, 0]) or np.array_equal(workspace[goal[1], goal[0]], [255, 0, 0]):
+elif np.array_equal(workspace[canvas_height-goal_y, goal_x], [0, 0, 0]) or np.array_equal(workspace[canvas_height-goal_y, goal_x], [255, 0, 0]):#y value has been adjusted to be set w.r.t bottom left corner as origin
     print("Goal is inside an obstacle or clearance area!")
 else:
     # Mark start and goal positions
-    workspace[start[1], start[0]] = (0, 255, 0)  # Green start point
-    workspace[goal[1], goal[0]] = (0, 0, 255)    # Red goal point
+    workspace[canvas_height-start_y, start_x] = (0, 255, 0)  # Green start point, y value has been adjusted to be set w.r.t bottom left corner as origin
+    workspace[canvas_height-goal_y, goal_x] = (0, 0, 255)    # Red goal point, y value has been adjusted to be set w.r.t bottom left corner as origin
 
     # Run BFS
-    path = bfs(start, goal)
+    path = bfs((start_x,canvas_height-start_y),(goal_x,canvas_height-goal_y))#y value has been adjusted to be set w.r.t bottom left corner as origin
 
     # Draw final path in red if found
     if path:
         for x, y in path:
-            workspace[y, x] = (0, 0, 255)  
+            workspace[y, x] = (238, 130, 238)  
             cv2.imshow("BFS Pathfinding", cv2.resize(workspace, (720, 200)))
             cv2.waitKey(1)
     else:
